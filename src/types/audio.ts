@@ -11,7 +11,7 @@ export type AudioMetadata = {
   sampleRate: number;
   channels: number;
   format: AudioFormat;
-  bitRate?: number;
+  bitRate: number;
 };
 
 export type DecodedAudio = {

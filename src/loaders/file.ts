@@ -162,8 +162,107 @@ export class FileAudioLoader implements IAudioLoader {
   }
 
   private async decodeMp3(buffer: Uint8Array): Promise<DecodedAudio> {
-    // For MP3, we'll need to use a decoder library or native APIs
-    // This is a placeholder for the MP3 decoding implementation
-    throw new Error('MP3 decoding not yet implemented');
+    try {
+      // MP3 Frame structure constants
+      const FRAME_SYNC = 0xFFE0;
+      const SAMPLING_RATES = [44100, 48000, 32000];
+      const BITRATES = [
+        0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320
+      ];
+
+      // Frame analysis for metadata extraction
+      let offset = 0;
+      let firstFrameFound = false;
+      let sampleRate = 0;
+      let channels = 0;
+      let bitRate = 0;
+      let totalFrames = 0;
+
+      // Find first valid frame and extract metadata
+      while (offset < buffer.length - 4) {
+        // Check for frame sync
+        const header = (buffer[offset] << 8) | buffer[offset + 1];
+        if ((header & FRAME_SYNC) === FRAME_SYNC) {
+          // Parse frame header
+          const version = (buffer[offset + 1] >> 3) & 0x03;
+          const layer = (buffer[offset + 1] >> 1) & 0x03;
+          const protection = buffer[offset + 1] & 0x01;
+          const bitrateIndex = (buffer[offset + 2] >> 4) & 0x0F;
+          const samplingRateIndex = (buffer[offset + 2] >> 2) & 0x03;
+          const padding = (buffer[offset + 2] >> 1) & 0x01;
+          const channelMode = (buffer[offset + 3] >> 6) & 0x03;
+
+          // Validate frame
+          if (version !== 3 || layer !== 1) { // We only support MPEG1 Layer III for now
+            offset++;
+            continue;
+          }
+
+          if (!firstFrameFound) {
+            sampleRate = SAMPLING_RATES[samplingRateIndex];
+            channels = channelMode === 3 ? 1 : 2;
+            bitRate = BITRATES[bitrateIndex] * 1000;
+            firstFrameFound = true;
+          }
+
+          // Calculate frame size
+          const frameSize = Math.floor((144 * bitRate / sampleRate) + padding);
+          offset += frameSize;
+          totalFrames++;
+        } else {
+          offset++;
+        }
+      }
+
+      if (!firstFrameFound) {
+        throw new AudioLoadError('No valid MP3 frames found', 'FORMAT_ERROR');
+      }
+
+      // Calculate approximate duration
+      const samplesPerFrame = 1152; // MPEG1 Layer III constant
+      const duration = (totalFrames * samplesPerFrame) / sampleRate;
+
+      // Decode MP3 data
+      const audioData = await this.decodeMP3Frames(buffer, channels, totalFrames);
+
+      return {
+        buffer: audioData,
+        metadata: {
+          duration,
+          sampleRate,
+          channels,
+          format: 'mp3',
+          bitRate
+        }
+      };
+    } catch (error) {
+      if (error instanceof AudioLoadError) throw error;
+      throw new AudioLoadError('Failed to decode MP3 file', 'DECODE_ERROR', error);
+    }
+  }
+
+  private async decodeMP3Frames(
+    buffer: Uint8Array,
+    channels: number,
+    totalFrames: number
+  ): Promise<Float32Array[]> {
+    // Create audio context for decoding
+    // const audioContext = new (globalThis.AudioContext || globalThis.webkitAudioContext)();
+    const audioContext = new AudioContext();
+    
+    try {
+      // Use Web Audio API for decoding
+      const audioBuffer = await audioContext.decodeAudioData(buffer.buffer as ArrayBuffer);
+      
+      // Extract channel data
+      const channelData: Float32Array[] = [];
+      for (let i = 0; i < channels; i++) {
+        channelData.push(audioBuffer.getChannelData(i));
+      }
+      
+      return channelData;
+    } finally {
+      await audioContext.close();
+    }
   }
 }
