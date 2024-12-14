@@ -4,31 +4,38 @@
 Claude Sonnet 3.5
 
 ## Overview
+
 A TypeScript-based audio processing system for extracting musical features from audio files and streams. The module provides a flexible, extensible architecture for audio analysis with a focus on high-quality feature extraction for use with LLMs.
 
 ## Core Components
 
 ### 1. Audio Sources
+
 #### File Handler
+
 - Supports MP3 and WAV formats initially
 - Uses Bun's native file system APIs
 - Provides efficient chunk-based reading for large files
 - Implements automatic format detection
 
 #### Stream Handler
+
 - Compatible with Bun's Stream APIs
 - Fallback support for Node.js Streams
 - Handles both fixed-length and infinite streams
 - Implements backpressure management
 
 ### 2. Audio Loading Pipeline
+
 #### Decoder
+
 - MP3 decoder implementation
 - WAV decoder implementation
 - Automatic sample rate conversion
 - Channel handling (mono/stereo)
 
 #### Buffer Management
+
 - Efficient AudioBuffer creation
 - Memory-optimized chunk processing
 - Temporary buffer pooling
@@ -37,6 +44,7 @@ A TypeScript-based audio processing system for extracting musical features from 
 ### 3. Feature Extraction
 
 #### Temporal Features
+
 - **Tempo Detection**
   - Onset detection algorithm
   - BPM calculation with confidence scoring
@@ -56,6 +64,7 @@ A TypeScript-based audio processing system for extracting musical features from 
   - Confidence scoring
 
 #### Tonal Features
+
 - **Key Detection**
   - Harmonic content analysis
   - Key confidence calculation
@@ -69,6 +78,7 @@ A TypeScript-based audio processing system for extracting musical features from 
   - Microtonal analysis
 
 #### Spectral Features
+
 - **Core Analysis**
   - Spectral centroid
   - Spectral flatness
@@ -84,6 +94,7 @@ A TypeScript-based audio processing system for extracting musical features from 
 ### 4. Data Processing Pipeline
 
 #### Processing Stages
+
 1. Input validation and normalization
 2. Audio loading and decoding
 3. Buffer preparation
@@ -92,6 +103,7 @@ A TypeScript-based audio processing system for extracting musical features from 
 6. Output formatting
 
 #### Configuration Options
+
 - Sample rate
 - Window size
 - Hop size
@@ -136,24 +148,28 @@ interface ProcessedAudioData {
 ## Implementation Guidelines
 
 ### Error Handling
+
 - Comprehensive error types
 - Graceful fallbacks
 - Detailed error messages
 - Recovery strategies
 
 ### Performance Considerations
+
 - Parallel processing where applicable
 - Memory efficient buffer handling
 - Processing cancellation support
 - Progress tracking
 
 ### Testing Strategy
+
 1. Unit tests for each feature extractor
 2. Integration tests for full pipeline
 3. Performance benchmarks
 4. Edge case handling
 
 ### Dependencies
+
 - Primary:
   - Bun runtime
   - Meyda (for spectral analysis)
@@ -163,6 +179,7 @@ interface ProcessedAudioData {
   - Node Stream APIs (compatibility)
 
 ## Future Extensions
+
 - Additional audio formats (FLAC, AAC)
 - Real-time streaming analysis
 - WebAssembly optimizations
