@@ -1,3 +1,12 @@
+import type {
+  TempoData,
+  BeatData,
+  TimeSignatureData,
+  KeyData,
+  PitchData,
+  SpectralData,
+} from './music';
+
 export type AudioFormat = 'mp3' | 'wav';
 
 export type AudioSource = {
@@ -12,12 +21,60 @@ export type AudioMetadata = {
   channels: number;
   format: AudioFormat;
   bitRate: number;
+  encoding?: string;
+  tags?: Record<string, string>;
 };
 
 export type DecodedAudio = {
   buffer: Float32Array[];  // Array of channels
   metadata: AudioMetadata;
 };
+
+export interface ProcessedAudioData {
+  metadata: AudioMetadata;
+  features: {
+    temporal: {
+      tempo: TempoData;
+      beats: BeatData;
+      timeSignature: TimeSignatureData;
+      rhythm?: {            // Optional rhythm analysis
+        syncopation: number;
+        complexity: number;
+        density: number;
+      };
+    };
+    tonal: {
+      key: KeyData;
+      pitch: PitchData;
+      harmony?: {          // Optional harmonic analysis
+        progressions: string[];
+        complexity: number;
+        tension: number[];
+      };
+    };
+    spectral: SpectralData;
+    dynamics?: {           // Optional dynamic analysis
+      loudness: number[];  // Loudness values over time
+      dynamics: number[];  // Dynamic range values
+      crest: number[];     // Crest factors
+    };
+  };
+  confidence: {
+    overall: number;       // Overall analysis confidence [0-1]
+    featureSpecific: Record<string, number>; // Per-feature confidence scores
+  };
+  analysis: {
+    timestamp: string;     // ISO timestamp of analysis
+    version: string;       // Analysis software version
+    processingTime: number; // Processing time in seconds
+    parameters?: {         // Optional processing parameters
+      windowSize: number;
+      hopSize: number;
+      algorithm: string;
+      settings: Record<string, unknown>;
+    };
+  };
+}
 
 export interface IAudioLoader {
   load(source: AudioSource): Promise<DecodedAudio>;
