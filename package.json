@@ -2,6 +2,9 @@
   "name": "wave-tools",
   "module": "src/index.ts",
   "type": "module",
+  "scripts": {
+    "load-audio": "bun src/index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
