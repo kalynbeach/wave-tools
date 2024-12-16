@@ -194,7 +194,7 @@ class MP3StreamDecoder implements StreamDecoder {
   }
 
   private async decodeFrame(frame: Uint8Array): Promise<void> {
-    // const audioContext = new (globalThis.AudioContext || globalThis.webkitAudioContext)();
+    // TODO: figure out a Node.js alternative for AudioContext (if needed?)
     const audioContext = new AudioContext();
 
     try {
