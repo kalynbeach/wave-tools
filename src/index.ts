@@ -1,13 +1,37 @@
 import type { AudioFormat, AudioSource, DecodedAudio } from './types/audio';
 import { AudioLoader } from './loaders';
 
+export function createAudioFileSource(
+  source: string,
+  format: AudioFormat
+): AudioSource {
+  return {
+    type: 'file',
+    format,
+    source
+  };
+}
+
+export async function decodeAudioFile(source: AudioSource): Promise<DecodedAudio> {
+  const loader = new AudioLoader();
+  try {
+    return await loader.load(source);
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(error.message);
+    } else {
+      console.error('[decodeAudioFile] Unknown error occurred');
+    }
+    process.exit(1);
+  }
+}
+
 async function loadAudio(source: AudioSource): Promise<DecodedAudio> {
   const loader = new AudioLoader();
   const decodedAudio = await loader.load(source);
   return decodedAudio;
 }
 
-// TODO: Build CLI and replace current argument parsing
 async function main() {
   console.log('\n[ ~ wave-tools ~ ]\n');
 
@@ -39,4 +63,4 @@ async function main() {
   console.log('[main] Audio loaded - metadata: ', audio.metadata);
 }
 
-main();
+// main();
