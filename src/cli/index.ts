@@ -54,8 +54,6 @@ async function decode(source: string, options: z.infer<typeof optionsSchema>) {
 
 async function analyze(source: string, options: z.infer<typeof optionsSchema>) {
   const audioSource = createAudioFileSource(source, options.format as AudioFormat);
-  console.log('[decode] audioSource: ', audioSource);
-  console.log('[decode] analyzing audio...');
+  console.log('[analyze] audioSource: ', audioSource);
   await analyzeAudioFile(audioSource);
-  console.log('[analyze] done!');
 }

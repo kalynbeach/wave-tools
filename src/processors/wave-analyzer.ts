@@ -34,22 +34,25 @@ export class WaveAnalyzer implements IWaveAnalyzer {
     this.options = options;
     this.meyda = Meyda;
     this.callback = callback;
-    // this.analyzer = this.createAnalyzer();
   }
 
   analyze(features?: MeydaAudioFeature[]): WaveAnalyzerResult {
     const featuresToExtract = features || this.options.features;
 
-    const signal = new Float32Array(this.audio);
+    let signal = new Float32Array(this.audio);
     console.log('[WaveAnalyzer] signal.byteLength: ', signal.byteLength);
 
-    // TODO: ensure audio ArrayBuffer size is a power of 2
+    // TODO?: if signal.byteSize is greater than this.options.bufferSize, resample to this.options.bufferSize
+    // TODO?: ensure signal.byteSize is a power of 2
+    if (signal.byteLength > this.options.bufferSize) {
+      const newSignal = new Float32Array(this.options.bufferSize);
+      newSignal.set(signal.subarray(0, this.options.bufferSize));
+      console.log('[WaveAnalyzer] newSignal.byteLength: ', newSignal.byteLength);
+      signal = newSignal;
+    }
 
-    // this.meyda.bufferSize = signal.byteLength;
     // this.meyda.bufferSize = this.options.bufferSize;
-    // Properly set Meyda buffer size
-    // this.meyda.bufferSize = this.options.bufferSize;
-
+    this.meyda.bufferSize = signal.byteLength;
     console.log('[WaveAnalyzer] this.meyda.bufferSize: ', this.meyda.bufferSize);
 
     const data: WaveAnalyzerData | null = this.meyda.extract(featuresToExtract, signal);
@@ -65,35 +68,4 @@ export class WaveAnalyzer implements IWaveAnalyzer {
       timestamp: new Date().toISOString(),
     };
   }
-
-  // createAnalyzer(): MeydaAnalyzer {
-  //   try {
-  //     return Meyda.createMeydaAnalyzer({
-  //       audioContext: this.context,
-  //       source: this.source,
-  //       featureExtractors: this.options.features,
-  //       callback: (data: MeydaFeaturesObject) => {
-  //         this.data = data;
-  //         if (this.callback) {
-  //           this.callback(data);
-  //         }
-  //       }
-  //     });
-  //   } catch (error) {
-  //     console.error('[WaveAnalyzer] Error creating Meyda analyzer:', error);
-  //     throw error;
-  //   }
-  // }
-
-  // startAnalyzer(features?: MeydaAudioFeature[]): void {
-  //   if (features) {
-  //     this.analyzer.start(features);
-  //   } else {
-  //     this.analyzer.start();
-  //   }
-  // }
-
-  // stopAnalyzer(): void {
-  //   this.analyzer.stop();
-  // }
 }

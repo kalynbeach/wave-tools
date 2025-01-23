@@ -6,23 +6,12 @@ export async function analyzeAudioFile(source: AudioSource) {
   const { decodedAudio, audioFile, audioArrayBuffer } = await initializeAudio(source);
 
   const waveAnalyzer = createWaveAnalyzer(audioArrayBuffer);
-  // const waveAnalyzer = createWaveAnalyzer(decodedAudio);
-  // console.log('[analyzeAudioFile] waveAnalyzer: ', waveAnalyzer);
 
   console.log('[analyzeAudioFile] analyzing...');
   const result = waveAnalyzer.analyze();
 
   console.log('[analyzeAudioFile] done!');
   console.log('[analyzeAudioFile] WaveAnalyzerResult: ', result);
-
-  // console.log('[analyzeAudioFile] starting wave analyzer...');
-  // waveAnalyzer.startAnalyzer();
-
-  // setTimeout(() => {
-  //   console.log('[analyzeAudioFile] stopping wave analyzer...');
-  //   waveAnalyzer.stopAnalyzer();
-  //   console.log('[analyzeAudioFile] waveAnalyzer.data:', waveAnalyzer.data);
-  // }, 3000);
 }
 
 export async function initializeAudio(source: AudioSource) {
