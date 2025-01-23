@@ -1,7 +1,11 @@
 import { Command } from 'commander';
 import { z } from 'zod';
 import type { AudioFormat, AudioSource } from '../types/audio';
-import { createAudioFileSource, decodeAudioFile } from '../index';
+import {
+  createAudioFileSource,
+  decodeAudioFile,
+  analyzeAudioFile,
+} from '../index';
 
 const optionsSchema = z.object({
   source: z.string().min(1),
@@ -25,6 +29,15 @@ program.command('decode')
     await decode(source, options);
   });
 
+program.command('analyze')
+  .description('Analyze audio data')
+  .argument('<source>', 'Audio source (file path or stream URL)')
+  .option('-f, --format <format>', 'Audio format (wav, mp3)', 'wav')
+  .option('-o, --output <output>', 'Output directory path')
+  .action(async (source: string, options: z.infer<typeof optionsSchema>) => {
+    await analyze(source, options);
+  });
+
 program.parse();
 
 // CLI Command Actions
@@ -37,4 +50,12 @@ async function decode(source: string, options: z.infer<typeof optionsSchema>) {
   const decodedAudio = await decodeAudioFile(audioSource);
   console.log('[decode] done!');
   console.log('[decode] metadata: ', decodedAudio.metadata);
+}
+
+async function analyze(source: string, options: z.infer<typeof optionsSchema>) {
+  const audioSource = createAudioFileSource(source, options.format as AudioFormat);
+  console.log('[decode] audioSource: ', audioSource);
+  console.log('[decode] analyzing audio...');
+  await analyzeAudioFile(audioSource);
+  console.log('[analyze] done!');
 }

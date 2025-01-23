@@ -1,5 +1,59 @@
 import type { AudioFormat, AudioSource, DecodedAudio } from './types/audio';
 import { AudioLoader } from './loaders';
+import { createWaveAnalyzer } from './processors/wave-analyzer';
+
+export async function analyzeAudioFile(source: AudioSource) {
+  const { decodedAudio, audioFile, audioArrayBuffer } = await initializeAudio(source);
+
+  const waveAnalyzer = createWaveAnalyzer(audioArrayBuffer);
+  // const waveAnalyzer = createWaveAnalyzer(decodedAudio);
+  // console.log('[analyzeAudioFile] waveAnalyzer: ', waveAnalyzer);
+
+  console.log('[analyzeAudioFile] analyzing...');
+  const result = waveAnalyzer.analyze();
+
+  console.log('[analyzeAudioFile] done!');
+  console.log('[analyzeAudioFile] WaveAnalyzerResult: ', result);
+
+  // console.log('[analyzeAudioFile] starting wave analyzer...');
+  // waveAnalyzer.startAnalyzer();
+
+  // setTimeout(() => {
+  //   console.log('[analyzeAudioFile] stopping wave analyzer...');
+  //   waveAnalyzer.stopAnalyzer();
+  //   console.log('[analyzeAudioFile] waveAnalyzer.data:', waveAnalyzer.data);
+  // }, 3000);
+}
+
+export async function initializeAudio(source: AudioSource) {
+  console.log('[initializeAudio] initializing audio...');
+
+  const loader = new AudioLoader();
+  const decodedAudio = await loader.load(source);
+  console.log('[initializeAudio] metadata: ', decodedAudio.metadata);
+
+  const audioFile = Bun.file(source.source as string);
+  const audioArrayBuffer = await audioFile.arrayBuffer();
+
+  // const decodedAudio = decodedAudioResult.buffer;
+  // const decodedAudioArrayBuffer = decodedAudio[0].buffer;
+
+  // const audioContext = new AudioContext();
+  // const audioBuffer = audioContext.createBuffer(
+  //   1,
+  //   decodedAudioArrayBuffer.byteLength,
+  //   decodedAudioResult.metadata.sampleRate
+  // );
+
+  // const bufferSource = audioContext.createBufferSource();
+  // bufferSource.buffer = audioBuffer;
+
+  return {
+    decodedAudio,
+    audioFile,
+    audioArrayBuffer,
+  };
+}
 
 export function createAudioFileSource(
   source: string,
