@@ -3,7 +3,11 @@ import { AudioLoader } from './loaders';
 import { createWaveAnalyzer } from './processors/wave-analyzer';
 
 export async function analyzeAudioFile(source: AudioSource) {
-  const { decodedAudio, audioFile, audioArrayBuffer } = await initializeAudio(source);
+  const { decodedAudio, audioFile, audioArrayBuffer, audioData } = await initializeAudio(source);
+
+  // console.log('[analyzeAudioFile] decodedAudio.buffer: ', decodedAudio.buffer[0]);
+  // console.log('[analyzeAudioFile] audioArrayBuffer: ', audioArrayBuffer);
+  // console.log('[analyzeAudioFile] audioData: ', audioData);
 
   const waveAnalyzer = createWaveAnalyzer(audioArrayBuffer);
 
@@ -21,8 +25,11 @@ export async function initializeAudio(source: AudioSource) {
   const decodedAudio = await loader.load(source);
   console.log('[initializeAudio] metadata: ', decodedAudio.metadata);
 
+  // TODO: figure this stuff out (what data type / transforms are needed?)
   const audioFile = Bun.file(source.source as string);
   const audioArrayBuffer = await audioFile.arrayBuffer();
+  const audioData = new Float32Array(audioArrayBuffer);
+  // const audioData = new Uint8Array(audioArrayBuffer);
 
   // const decodedAudio = decodedAudioResult.buffer;
   // const decodedAudioArrayBuffer = decodedAudio[0].buffer;
@@ -41,6 +48,7 @@ export async function initializeAudio(source: AudioSource) {
     decodedAudio,
     audioFile,
     audioArrayBuffer,
+    audioData,
   };
 }
 
