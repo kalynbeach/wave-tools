@@ -1,7 +1,5 @@
-import type { MeydaAnalyzer } from 'meyda/dist/esm/meyda-wa';
 import Meyda, { type MeydaAudioFeature, type MeydaFeaturesObject } from 'meyda';
 import type { IWaveAnalyzer, WaveAnalyzerOptions, WaveAnalyzerData, WaveAnalyzerCallback, WaveAnalyzerResult } from '../types/wave-analyzer';
-import type { DecodedAudio } from '../types/audio';
 
 export function createWaveAnalyzerOptions(): WaveAnalyzerOptions {
   return {
@@ -12,7 +10,7 @@ export function createWaveAnalyzerOptions(): WaveAnalyzerOptions {
 }
 
 export function createWaveAnalyzer(
-  audio: ArrayBuffer,
+  audio: ArrayBufferLike,
   options?: WaveAnalyzerOptions,
   callback?: WaveAnalyzerCallback
 ): IWaveAnalyzer {
@@ -23,13 +21,13 @@ export function createWaveAnalyzer(
 }
 
 export class WaveAnalyzer implements IWaveAnalyzer {
-  audio: ArrayBuffer;
+  audio: ArrayBufferLike;
   options: WaveAnalyzerOptions;
   meyda: Meyda;
   data: WaveAnalyzerData = {};
   callback?: WaveAnalyzerCallback;
 
-  constructor(audio: ArrayBuffer, options: WaveAnalyzerOptions, callback?: WaveAnalyzerCallback) {
+  constructor(audio: ArrayBufferLike, options: WaveAnalyzerOptions, callback?: WaveAnalyzerCallback) {
     this.audio = audio;
     this.options = options;
     this.meyda = Meyda;
@@ -40,22 +38,21 @@ export class WaveAnalyzer implements IWaveAnalyzer {
     const featuresToExtract = features || this.options.features;
 
     let signal = new Float32Array(this.audio);
-    console.log('[WaveAnalyzer] signal.byteLength: ', signal.byteLength);
-
-    // TODO?: if signal.byteSize is greater than this.options.bufferSize, resample to this.options.bufferSize
-    // TODO?: ensure signal.byteSize is a power of 2
-    if (signal.byteLength > this.options.bufferSize) {
-      const newSignal = new Float32Array(this.options.bufferSize);
-      newSignal.set(signal.subarray(0, this.options.bufferSize));
-      console.log('[WaveAnalyzer] newSignal.byteLength: ', newSignal.byteLength);
-      signal = newSignal;
+    
+    // ensure the buffer size is a power of 2 as required by Meyda
+    const bufferSize = this.options.bufferSize;
+    if (signal.length > bufferSize) {
+      signal = signal.subarray(0, bufferSize);
+    } else if (signal.length < bufferSize) {
+      // zero-pad if signal is too short
+      const paddedSignal = new Float32Array(bufferSize);
+      paddedSignal.set(signal);
+      signal = paddedSignal;
     }
 
-    // this.meyda.bufferSize = this.options.bufferSize;
-    this.meyda.bufferSize = signal.byteLength;
-    console.log('[WaveAnalyzer] this.meyda.bufferSize: ', this.meyda.bufferSize);
+    this.meyda.bufferSize = bufferSize;
 
-    const data: WaveAnalyzerData | null = this.meyda.extract(featuresToExtract, signal);
+    const data = this.meyda.extract(featuresToExtract, signal);
 
     if (!data) {
       throw new Error('[WaveAnalyzer] Meyda extraction failed');
