@@ -1,6 +1,34 @@
-import type { AudioFormat, AudioSource, DecodedAudio } from './types/audio';
+import { $ } from 'bun';
+import path from 'node:path';
 import { AudioLoader } from './loaders';
 import { createWaveAnalyzer } from './processors/wave-analyzer';
+import type { AudioFormat, AudioSource, DecodedAudio } from './types/audio';
+
+export async function transcodeToWav(source: AudioSource) {
+  try {
+    const TRANSCODED_AUDIO_DIR = './data/transcoded';
+    const inputFilename = path.basename(source.source as string, `.${source.format}`);
+    const outputFilename = `${TRANSCODED_AUDIO_DIR}/${inputFilename}.wav`;
+    console.log('[transcodeToWav] input: ', source.source);
+    console.log('[transcodeToWav] output: ', outputFilename);
+
+    const outputFile = Bun.file(outputFilename);
+    const outputFileExists = await outputFile.exists();
+    if (outputFileExists) {
+      console.log(`[transcodeToWav] skipping '${outputFilename}' - transcoded file already exists`);
+      process.exit(0);
+    }
+
+    console.log('[transcodeToWav] transcoding...');
+    await $`ffmpeg -i ${source.source} -f wav ${outputFilename}`;
+    console.log('[transcodeToWav] done!');
+
+    process.exit(0);
+  } catch (error) {
+    console.error('[transcodeToWav] Error: ', error);
+    process.exit(1);
+  }
+}
 
 export async function analyzeAudioFile(source: AudioSource) {
   const { decodedAudio } = await initializeAudio(source);

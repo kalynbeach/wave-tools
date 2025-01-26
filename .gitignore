@@ -1,7 +1,9 @@
 # Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
 
 data/*.wav
+data/**/*.wav
 data/*.mp3
+data/**/*.mp3
 
 # Logs
 
